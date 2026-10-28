@@ -58,7 +58,7 @@ export default function Gym() {
       {/* TOP BAR */}
       <div className="topbar">
         <div className="container topbar-inner">
-          <div>✉ example@gmail.com</div>
+          <div>✉ jasferbrine@gmail.com</div>
           <div>◷ Mon - Sat: 8:00 am - 7:00 pm</div>
           <div className="top-social">Follow us: <a href="#footer">f</a> <a href="#footer">𝕏</a> <a href="#footer">◎</a></div>
         </div>
@@ -68,7 +68,7 @@ export default function Gym() {
       <header className="gym-header">
         <div className="container nav-inner">
           <a className="logo" href="#home" onClick={() => setMenuOpen(false)}>
-            <span className="logo-icon">✊</span> Fitness<span className="logo-dot">.</span>
+            <span className="logo-icon">✊</span> JASS PAIN ZONE<span className="logo-dot">.</span>
           </a>
 
           <button
@@ -96,7 +96,7 @@ export default function Gym() {
         <div className="hero-overlay" />
         <div className="container hero-content">
           <div className="hero-copy" key={slide}>
-            <p className="eyebrow">WELCOME TO OUR FITNESS CENTER</p>
+            <p className="eyebrow">WELCOME TO THE PAIN ZONE</p>
             <h1>
               {slide === 0
                 ? <>The Best Gym Center Is <span>Now In Your City</span></>
@@ -340,8 +340,8 @@ export default function Gym() {
           <div>
             <h3>Contact Us</h3>
             <p>⌖ Your City, Your Country</p>
-            <p>✉ example@gmail.com</p>
-            <p>☎ +00 123 456 789</p>
+            <p>✉ jasferbrine@gmail.com</p>
+            <p>☎ +923207080695</p>
           </div>
         </div>
         <div className="footer-bottom">
