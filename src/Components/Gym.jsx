@@ -339,7 +339,7 @@ export default function Gym() {
           </div>
           <div>
             <h3>Contact Us</h3>
-            <p>⌖ Your City, Your Country</p>
+            <p>⌖ Jaranwala City, pakistan Country</p>
             <p>✉ jasferbrine@gmail.com</p>
             <p>☎ +923207080695</p>
           </div>
