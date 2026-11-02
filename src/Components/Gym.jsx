@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from "react";
 
-
 export default function Gym() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dietTab, setDietTab] = useState("loss");

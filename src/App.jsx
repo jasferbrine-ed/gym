@@ -66,6 +66,9 @@
 // export defaulf App;
 
 
+                
+
+
 import React from "react";
 import { createRoot } from "react-dom/client";
 import Gym from "./Components/Gym";
@@ -76,3 +79,16 @@ function App() {
 }
 
 export default App;
+
+
+
+
+// import React from "react";
+// import Snooker from "./Components/Snooker";
+// import "./App.css";
+
+// function App() {
+//   return <Snooker />;
+// }
+
+// export default App;
