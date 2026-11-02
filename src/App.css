@@ -1,359 +1,1030 @@
 
-/* =========================================
-   WEIGHT LOSS & WEIGHT GAIN SECTION
-========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
 
-.weight-section {
-  background: #101820;
+:root {
+  --primary: #f15a24;
+  --dark: #111111;
+  --dark-light: #1c1c1c;
+  --light: #f5f5f5;
+  --text: #666;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 85px;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: #fff;
+  color: #222;
+}
+
+a {
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.section-padding {
+  padding: 90px 0;
+}
+
+.section-label {
+  color: var(--primary);
+  font-weight: 700;
+  letter-spacing: 3px;
+  font-size: 13px;
+}
+
+.btn {
+  display: inline-block;
+  background: var(--primary);
   color: white;
-  padding: 85px 0;
+  padding: 14px 27px;
+  border: 2px solid var(--primary);
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: 0.3s;
+  cursor: pointer;
 }
 
-.weight-tabs {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin: 35px 0;
-}
-
-.weight-tab {
-  padding: 14px 28px;
-  border: 1px solid #f5b942;
-  border-radius: 7px;
+.btn:hover {
   background: transparent;
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
+  color: var(--primary);
 }
 
-.weight-tab.active {
-  background: #f5b942;
-  color: #101820;
-}
-
-.weight-intro {
-  text-align: center;
-  background: #17232d;
-  border: 1px solid #354554;
-  border-radius: 12px;
-  padding: 25px;
-  margin-bottom: 25px;
-}
-
-.weight-badge {
-  color: #f5b942;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 2px;
-}
-
-.weight-intro h3 {
-  font-size: 27px;
-  color: white;
-  margin: 12px 0;
-}
-
-.weight-intro p,
-.weight-small {
-  color: #b5c0ca;
-  font-size: 13px;
-}
-
-.weight-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.weight-panel {
-  background: #17232d;
-  border: 1px solid #354554;
-  border-radius: 12px;
-  padding: 25px;
-}
-
-.weight-panel h3 {
-  color: #f5b942;
-  margin-top: 0;
-}
-
-.weight-meal {
-  display: flex;
-  gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid #354554;
-}
-
-.meal-time {
-  min-width: 85px;
-  color: #f5b942;
-  font-weight: 700;
-  font-size: 12px;
-}
-
-.weight-meal h4 {
-  color: white;
-  margin: 0 0 6px;
-  font-size: 14px;
-}
-
-.weight-meal p {
-  color: #b5c0ca;
-  font-size: 12px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.weight-workout {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  padding: 13px 0;
-  border-bottom: 1px solid #354554;
-}
-
-.weight-workout span {
-  color: #f5b942;
-  font-weight: 800;
-}
-
-.weight-workout p {
-  color: #e1e8ee;
-  font-size: 13px;
-  margin: 0;
-}
-
-.weight-tips {
-  padding: 17px;
-  margin-top: 20px;
-  background: #202f3a;
-  border-radius: 9px;
-}
-
-.weight-tips h4 {
-  color: #f5b942;
-  margin: 0 0 10px;
-}
-
-.weight-tips p {
-  color: #d4dde5;
-  font-size: 12px;
-  line-height: 1.7;
-}
-
-.weight-note {
-  margin-top: 22px;
-  padding: 18px;
-  border-left: 3px solid #f5b942;
-  background: #17232d;
-  color: #c1cbd3;
-  font-size: 12px;
-  line-height: 1.8;
-}
-
-.weight-note strong {
-  color: #f5b942;
-}
-
-.weight-join {
-  text-align: center;
-  margin-top: 35px;
-}
-
-.weight-join h3 {
-  color: #fff;
-}
-
-.weight-join p {
-  color: #b5c0ca;
-}
-
-/* =========================================
-   ADMISSION FORM
-========================================= */
-
-.admission-section {
-  background: #f4f5f7;
-  padding: 85px 0;
-}
-
-.admission-section .section-heading h2 {
-  color: #17212b;
-}
-
-.admission-section .section-heading > p:last-child {
-  color: #65717c;
-}
-
-.admission-wrapper {
-  display: grid;
-  grid-template-columns: 0.8fr 1.2fr;
-  gap: 30px;
-  margin-top: 35px;
-  align-items: stretch;
-}
-
-.admission-info {
-  background: #17232d;
-  padding: 35px;
-  border-radius: 12px;
+.btn-outline {
+  background: transparent;
+  border-color: white;
   color: white;
 }
 
-.admission-info h3 {
-  color: #f5b942;
-  font-size: 27px;
-  line-height: 1.4;
-}
-
-.admission-info > p:not(.eyebrow) {
-  color: #c2cbd3;
-  line-height: 1.8;
-  font-size: 14px;
-}
-
-.admission-benefit {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-top: 22px;
-  color: #e9edf0;
-  font-size: 13px;
-}
-
-.admission-benefit span {
-  color: #f5b942;
-  font-size: 19px;
-  font-weight: 900;
-}
-
-.admission-form {
+.btn-outline:hover {
   background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0,0,0,.08);
+  color: var(--dark);
 }
 
-.admission-form h3 {
-  color: #17232d;
-  margin-top: 0;
-  margin-bottom: 25px;
+/* TOP BAR */
+
+.topbar {
+  background: var(--dark);
+  color: #ddd;
+  padding: 10px 0;
+  font-size: 13px;
 }
 
-.admission-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-}
-
-.admission-field {
+.topbar-content {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 15px;
 }
 
-.admission-field label {
-  color: #283541;
-  font-size: 13px;
-  font-weight: 700;
+/* NAVBAR */
+
+.navbar {
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 3px 15px rgba(0,0,0,0.08);
 }
 
-.admission-field input,
-.admission-field select,
-.admission-field textarea {
-  width: 100%;
-  padding: 13px;
-  border: 1px solid #d8dde3;
-  border-radius: 6px;
-  outline: none;
-  background: #fafbfc;
-  color: #17232d;
-  font-size: 13px;
-}
-
-.admission-field input:focus,
-.admission-field select:focus,
-.admission-field textarea:focus {
-  border-color: #f0ae28;
-  box-shadow: 0 0 0 3px rgba(245,185,66,.12);
-}
-
-.full-field {
-  grid-column: 1 / -1;
-}
-
-.admission-field textarea {
-  resize: vertical;
-}
-
-.admission-submit {
-  width: 100%;
-  margin-top: 22px;
-  padding: 15px;
-  border: none;
-  cursor: pointer;
-}
-
-.admission-notification {
+.nav-content {
+  min-height: 76px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding: 15px;
-  margin-top: 18px;
-  border-radius: 7px;
-  background: #e3f8e9;
-  border: 1px solid #8bd39c;
-  color: #176b35;
-  font-size: 13px;
-  line-height: 1.6;
 }
 
-.admission-notification button {
-  background: transparent;
-  border: none;
-  color: #176b35;
-  font-size: 23px;
+.logo {
+  color: var(--dark);
+  font-family: 'Oswald', sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.logo span {
+  color: var(--primary);
+}
+
+.nav-links {
+  display: flex;
+  gap: 25px;
+  align-items: center;
+}
+
+.nav-links a {
+  color: #222;
+  font-weight: 600;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.nav-links a:hover {
+  color: var(--primary);
+}
+
+.menu-toggle {
+  display: none;
+  border: 0;
+  background: var(--primary);
+  color: white;
+  font-size: 24px;
+  padding: 5px 12px;
   cursor: pointer;
 }
 
-/* =========================================
-   RESPONSIVE
-========================================= */
+/* HERO */
 
-@media (max-width: 768px) {
-  .weight-grid {
-    grid-template-columns: 1fr;
+.hero {
+  min-height: 650px;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,0.88), rgba(0,0,0,0.35)),
+    url('/img/carousel-1.jpg') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.hero-overlay {
+  width: 100%;
+  padding: 100px 0;
+}
+
+.hero-content {
+  max-width: 1200px;
+}
+
+.hero-small {
+  color: var(--primary);
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+.hero h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(42px, 6vw, 76px);
+  line-height: 1.15;
+  margin: 20px 0;
+}
+
+.hero h1 span {
+  color: var(--primary);
+}
+
+.hero-content p {
+  color: #ddd;
+  max-width: 600px;
+  line-height: 1.8;
+  margin-bottom: 30px;
+  font-size: 17px;
+}
+
+.hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+/* SECTION HEADING */
+
+.section-heading {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto 50px;
+}
+
+.section-heading h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 40px;
+  margin: 12px 0;
+  color: var(--dark);
+}
+
+.section-heading p {
+  color: var(--text);
+  line-height: 1.7;
+}
+
+/* ABOUT */
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 60px;
+}
+
+.about-image img {
+  width: 100%;
+  max-height: 470px;
+  object-fit: cover;
+}
+
+.about-content h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 42px;
+  margin: 15px 0;
+}
+
+.about-content p {
+  color: var(--text);
+  line-height: 1.9;
+  margin-bottom: 17px;
+}
+
+.about-content .btn {
+  margin-top: 10px;
+}
+
+/* GOALS BANNER */
+
+.goals-banner {
+  background:
+    linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)),
+    url('/img/carousel-1.jpg') center/cover fixed;
+  padding: 90px 0;
+  text-align: center;
+  color: white;
+}
+
+.goals-content h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 44px;
+  margin: 15px 0;
+}
+
+.goals-content p {
+  color: #ddd;
+  max-width: 650px;
+  line-height: 1.8;
+  margin: 0 auto 25px;
+}
+
+/* FEATURES */
+
+.features-section {
+  background: #f5f5f5;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+}
+
+.feature-card {
+  background: white;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.07);
+  transition: 0.35s;
+}
+
+.feature-card:hover {
+  transform: translateY(-9px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+}
+
+.feature-image {
+  position: relative;
+  height: 230px;
+}
+
+.feature-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.feature-icon {
+  position: absolute;
+  bottom: -22px;
+  left: 25px;
+  width: 52px;
+  height: 52px;
+  background: var(--primary);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+  border-radius: 50%;
+  border: 4px solid white;
+}
+
+.feature-content {
+  padding: 35px 25px 25px;
+}
+
+.feature-content h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 25px;
+  margin-bottom: 12px;
+}
+
+.feature-content p {
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.feature-content ul,
+.course-content ul,
+.diet-content ul {
+  list-style: none;
+}
+
+.feature-content li,
+.course-content li,
+.diet-content li {
+  color: #555;
+  line-height: 2;
+  font-size: 14px;
+}
+
+/* COURSES */
+
+.courses-section {
+  background: #fff;
+}
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.course-card {
+  background: #1c1c1c;
+  color: white;
+  border-radius: 9px;
+  overflow: hidden;
+  transition: 0.35s;
+}
+
+.course-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.course-image {
+  height: 220px;
+  overflow: hidden;
+}
+
+.course-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: 0.5s;
+}
+
+.course-card:hover .course-image img {
+  transform: scale(1.08);
+}
+
+.course-content {
+  padding: 25px;
+}
+
+.course-tag {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.course-content h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 27px;
+  margin: 12px 0;
+}
+
+.course-content p {
+  color: #bbb;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.course-content h4 {
+  color: var(--primary);
+  margin: 20px 0 8px;
+}
+
+.course-content li {
+  color: #ccc;
+}
+
+.course-focus {
+  border-top: 1px solid #444;
+  margin-top: 18px;
+  padding-top: 15px;
+  color: #ddd;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.course-focus strong {
+  color: var(--primary);
+}
+
+.course-btn {
+  margin-top: 20px;
+  width: 100%;
+  text-align: center;
+}
+
+/* JOIN BANNER */
+
+.join-banner {
+  background:
+    linear-gradient(rgba(0,0,0,0.82), rgba(0,0,0,0.82)),
+    url('/img/carousel-1.jpg') center/cover no-repeat;
+  padding: 90px 0;
+  color: white;
+  text-align: center;
+}
+
+.join-content h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 42px;
+  margin-bottom: 15px;
+}
+
+.join-content p {
+  color: #ddd;
+  margin-bottom: 25px;
+}
+
+/* TRAINERS */
+
+.trainers-section {
+  background: #f5f5f5;
+}
+
+.trainers-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+
+.trainer-card {
+  background: white;
+  text-align: center;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.trainer-card img {
+  width: 100%;
+  height: 290px;
+  object-fit: cover;
+  display: block;
+  transition: 0.4s;
+}
+
+.trainer-card:hover img {
+  transform: scale(1.06);
+}
+
+.trainer-info {
+  padding: 20px 10px;
+}
+
+.trainer-info h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 22px;
+}
+
+.trainer-info p {
+  color: var(--primary);
+  margin-top: 7px;
+}
+
+/* DIET PLAN */
+
+.diet-section {
+  background: white;
+}
+
+.diet-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.diet-tabs button {
+  border: 2px solid var(--primary);
+  padding: 12px 25px;
+  color: var(--primary);
+  background: white;
+  cursor: pointer;
+  font-weight: 700;
+  transition: 0.3s;
+}
+
+.diet-tabs button.active,
+.diet-tabs button:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.diet-card {
+  max-width: 950px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.diet-image img {
+  width: 100%;
+  height: 100%;
+  min-height: 350px;
+  object-fit: cover;
+}
+
+.diet-content {
+  padding: 35px;
+}
+
+.diet-content h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 30px;
+  margin-bottom: 15px;
+}
+
+.diet-content p {
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 15px;
+}
+
+.diet-note {
+  font-size: 12px;
+  border-top: 1px solid #ddd;
+  padding-top: 15px;
+}
+
+/* TESTIMONIAL */
+
+.testimonial-section {
+  background:
+    linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)),
+    url('/img/carousel-1.jpg') center/cover;
+  padding: 90px 0;
+  text-align: center;
+  color: white;
+}
+
+.testimonial-content {
+  max-width: 750px;
+}
+
+.testimonial-content h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 42px;
+  margin: 15px 0;
+}
+
+.testimonial-content p {
+  color: #ddd;
+  font-size: 18px;
+  line-height: 1.9;
+  margin-bottom: 20px;
+}
+
+.testimonial-content h4 {
+  color: var(--primary);
+  letter-spacing: 3px;
+}
+
+/* BLOG */
+
+.blog-section {
+  background: #f5f5f5;
+}
+
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.blog-card {
+  background: white;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.07);
+  overflow: hidden;
+  transition: 0.3s;
+}
+
+.blog-card:hover {
+  transform: translateY(-8px);
+}
+
+.blog-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.blog-content {
+  padding: 25px;
+}
+
+.blog-content h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 23px;
+  margin-bottom: 12px;
+}
+
+.blog-content p {
+  color: var(--text);
+  line-height: 1.7;
+}
+
+/* ADMISSION */
+
+.admission-section {
+  background: #111;
+  color: white;
+}
+
+.admission-container {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  align-items: center;
+  gap: 50px;
+}
+
+.admission-info h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 42px;
+  margin: 15px 0;
+}
+
+.admission-info > p {
+  color: #bbb;
+  line-height: 1.8;
+}
+
+.admission-benefit {
+  margin-top: 25px;
+}
+
+.admission-benefit p {
+  color: #ddd;
+  margin: 15px 0;
+}
+
+.admission-benefit p::first-letter {
+  color: var(--primary);
+}
+
+.admission-form {
+  background: #202020;
+  padding: 35px;
+  border-radius: 10px;
+}
+
+.admission-form h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 30px;
+  margin-bottom: 25px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.admission-form input,
+.admission-form select,
+.admission-form textarea {
+  width: 100%;
+  background: #111;
+  border: 1px solid #444;
+  color: white;
+  padding: 15px;
+  margin-bottom: 15px;
+  outline: none;
+  border-radius: 4px;
+}
+
+.admission-form input:focus,
+.admission-form select:focus,
+.admission-form textarea:focus {
+  border-color: var(--primary);
+}
+
+.admission-form select option {
+  background: #111;
+}
+
+.admission-form textarea {
+  resize: vertical;
+}
+
+.form-submit {
+  width: 100%;
+}
+
+/* NEWSLETTER */
+
+.newsletter-section {
+  background: var(--primary);
+  padding: 60px 0;
+  text-align: center;
+  color: white;
+}
+
+.newsletter-content h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 38px;
+}
+
+.newsletter-content p {
+  margin: 12px 0 25px;
+}
+
+.newsletter-content .btn {
+  background: white;
+  color: var(--primary);
+  border-color: white;
+}
+
+.newsletter-content .btn:hover {
+  background: transparent;
+  color: white;
+}
+
+/* FOOTER */
+
+.footer {
+  background: #080808;
+  color: white;
+  padding-top: 60px;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 35px;
+  padding-bottom: 45px;
+}
+
+.footer-content > div:first-child p {
+  color: #aaa;
+  line-height: 1.8;
+  margin-top: 15px;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-links h3 {
+  color: var(--primary);
+  margin-bottom: 8px;
+  font-family: 'Oswald', sans-serif;
+}
+
+.footer-links a,
+.footer-links p {
+  color: #bbb;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.footer-links a:hover {
+  color: var(--primary);
+}
+
+.copyright {
+  border-top: 1px solid #333;
+  padding: 20px;
+  text-align: center;
+  color: #aaa;
+  font-size: 13px;
+}
+
+/* NOTIFICATION */
+
+.notification {
+  position: fixed;
+  top: 25px;
+  right: 25px;
+  background: #198754;
+  color: white;
+  padding: 17px 25px;
+  border-radius: 6px;
+  z-index: 3000;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  max-width: 90%;
+}
+
+/* SCROLL ANIMATION */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(35px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .nav-links {
+    gap: 14px;
   }
 
-  .weight-tabs {
-    gap: 8px;
-  }
-
-  .weight-tab {
-    flex: 1;
-    padding: 12px 8px;
+  .nav-links a {
     font-size: 12px;
   }
 
-  .admission-wrapper {
+  .courses-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .trainers-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .footer-content {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .nav-content {
+    position: relative;
+  }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 76px;
+    left: 0;
+    width: 100%;
+    background: white;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+  }
+
+  .nav-links.show {
+    display: flex;
+  }
+
+  .nav-links a {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    font-size: 14px;
+  }
+
+  .hero {
+    min-height: 550px;
+  }
+
+  .about-grid,
+  .admission-container {
     grid-template-columns: 1fr;
   }
 
-  .admission-fields {
+  .about-grid {
+    gap: 30px;
+  }
+
+  .about-content h2,
+  .admission-info h2 {
+    font-size: 34px;
+  }
+
+  .features-grid {
     grid-template-columns: 1fr;
   }
 
-  .admission-info,
+  .diet-card {
+    grid-template-columns: 1fr;
+  }
+
+  .diet-image img {
+    min-height: 250px;
+    max-height: 300px;
+  }
+
+  .blog-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 550px) {
+  .section-padding {
+    padding: 60px 0;
+  }
+
+  .container {
+    width: 92%;
+  }
+
+  .hero {
+    min-height: 520px;
+  }
+
+  .hero h1 {
+    font-size: 42px;
+  }
+
+  .hero-content p {
+    font-size: 14px;
+  }
+
+  .section-heading h2 {
+    font-size: 31px;
+  }
+
+  .goals-content h2,
+  .join-content h2,
+  .testimonial-content h2 {
+    font-size: 32px;
+  }
+
+  .courses-grid,
+  .trainers-grid,
+  .blog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
   .admission-form {
     padding: 22px;
   }
 
-  .weight-meal {
-    gap: 10px;
+  .diet-content {
+    padding: 22px;
   }
 
-  .meal-time {
-    min-width: 72px;
+  .diet-tabs {
+    gap: 8px;
+  }
+
+  .diet-tabs button {
+    padding: 11px 15px;
+    font-size: 13px;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+  }
+
+  .notification {
+    right: 5%;
+    top: 15px;
+    width: 90%;
   }
 }
