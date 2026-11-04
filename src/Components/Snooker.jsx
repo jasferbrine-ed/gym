@@ -1,752 +1,1142 @@
+import React, { useEffect, useState } from "react";
 
-import React, { useEffect, useMemo, useState } from "react";
-
-const DEFAULT_PRICES = {
-  single6: 100,
-  single10: 150,
-  double6: 200,
-  double10: 300,
-  numbri: 12
-};
-
-const makeTables = () => Array.from({ length: 5 }, (_, i) => ({
+const DEFAULT_TABLES = Array.from({ length: 5 }, (_, i) => ({
   id: i + 1,
-  active: false,
-  startedAt: null,
-  elapsed: 0,
-  game: "single6",
+  name: `Table ${i + 1}`,
+  status: "UNACTIVE",
+  game: "6 Red",
+  rate: 100,
   discount: 0,
-  customer: ""
+  startedAt: null,
 }));
 
-const read = (key, fallback) => {
+const readData = (key, fallback) => {
   try {
-    const value = localStorage.getItem(key);
-    return value ? JSON.parse(value) : fallback;
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : fallback;
   } catch {
     return fallback;
   }
 };
 
-const money = n => `Rs. ${Number(n || 0).toLocaleString("en-PK")}`;
-const dayKey = value => new Date(value).toISOString().slice(0, 10);
+const money = (amount) => `Rs. ${Number(amount || 0).toLocaleString()}`;
 
-export default function Snooker() {
-  const [owner, setOwner] = useState(() => read("snookerOwner", null));
-  const [loggedIn, setLoggedIn] = useState(() => sessionStorage.getItem("snookerLoggedIn") === "yes");
+function Snooker() {
+  const [loggedIn, setLoggedIn] = useState(
+    localStorage.getItem("snookerLoggedIn") === "true"
+  );
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
 
-  const [tables, setTables] = useState(() => read("snookerTables", makeTables()));
-  const [prices, setPrices] = useState(() => read("snookerPrices", DEFAULT_PRICES));
-  const [history, setHistory] = useState(() => read("snookerHistory", []));
-  const [expenses, setExpenses] = useState(() => read("snookerExpenses", []));
-  const [udhaar, setUdhaar] = useState(() => read("snookerUdhaar", []));
-  const [payments, setPayments] = useState(() => read("snookerPayments", []));
+  const [tables, setTables] = useState(() =>
+    readData("snookerTables", DEFAULT_TABLES)
+  );
+  const [bookings, setBookings] = useState(() =>
+    readData("snookerBookings", [])
+  );
+  const [expenses, setExpenses] = useState(() =>
+    readData("snookerExpenses", [])
+  );
+  const [ledger, setLedger] = useState(() =>
+    readData("snookerLedger", [])
+  );
+  const [history, setHistory] = useState(() =>
+    readData("snookerHistory", [])
+  );
+
   const [now, setNow] = useState(Date.now());
+  const [notice, setNotice] = useState("");
 
-  const [page, setPage] = useState("dashboard");
-  const [message, setMessage] = useState("");
+  const [bookingForm, setBookingForm] = useState({
+    customer: "",
+    table: "1",
+    date: "",
+    time: "",
+  });
 
-  const [expenseName, setExpenseName] = useState("");
-  const [expenseAmount, setExpenseAmount] = useState("");
-  const [customerName, setCustomerName] = useState("");
-  const [udhaarAmount, setUdhaarAmount] = useState("");
-  const [returnAmounts, setReturnAmounts] = useState({});
-  const [paymentAmount, setPaymentAmount] = useState("");
-  const [selectedDate, setSelectedDate] = useState(dayKey(new Date()));
+  const [expenseForm, setExpenseForm] = useState({
+    title: "",
+    amount: "",
+  });
+
+  const [ledgerForm, setLedgerForm] = useState({
+    name: "",
+    given: "",
+    returned: "",
+  });
+
+  const [numbriRunning, setNumbriRunning] = useState(false);
+  const [numbriStarted, setNumbriStarted] = useState(null);
+  const [numbriElapsed, setNumbriElapsed] = useState(0);
+
+  const [transferFrom, setTransferFrom] = useState("1");
+  const [transferTo, setTransferTo] = useState("2");
+
+  const [activeSection, setActiveSection] = useState("dashboard");
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
+    localStorage.setItem("snookerTables", JSON.stringify(tables));
+  }, [tables]);
+
+  useEffect(() => {
+    localStorage.setItem("snookerBookings", JSON.stringify(bookings));
+  }, [bookings]);
+
+  useEffect(() => {
+    localStorage.setItem("snookerExpenses", JSON.stringify(expenses));
+  }, [expenses]);
+
+  useEffect(() => {
+    localStorage.setItem("snookerLedger", JSON.stringify(ledger));
+  }, [ledger]);
+
+  useEffect(() => {
+    localStorage.setItem("snookerHistory", JSON.stringify(history));
+  }, [history]);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => localStorage.setItem("snookerTables", JSON.stringify(tables)), [tables]);
-  useEffect(() => localStorage.setItem("snookerPrices", JSON.stringify(prices)), [prices]);
-  useEffect(() => localStorage.setItem("snookerHistory", JSON.stringify(history)), [history]);
-  useEffect(() => localStorage.setItem("snookerExpenses", JSON.stringify(expenses)), [expenses]);
-  useEffect(() => localStorage.setItem("snookerUdhaar", JSON.stringify(udhaar)), [udhaar]);
-  useEffect(() => localStorage.setItem("snookerPayments", JSON.stringify(payments)), [payments]);
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = setTimeout(() => setNotice(""), 3000);
+    return () => clearTimeout(timeout);
+  }, [notice]);
 
-  const notify = text => {
-    setMessage(text);
-    window.setTimeout(() => setMessage(""), 2500);
-  };
-
-  const login = e => {
+  const login = (e) => {
     e.preventDefault();
 
-    if (!owner) {
-      if (username.trim().length < 3 || password.length < 6) {
-        notify("Username kam az kam 3 aur password 6 characters ka hona chahiye.");
-        return;
-      }
-
-      const newOwner = { username: username.trim(), password };
-      localStorage.setItem("snookerOwner", JSON.stringify(newOwner));
-      setOwner(newOwner);
-      sessionStorage.setItem("snookerLoggedIn", "yes");
+    if (username === "admin" && password === "12345") {
+      localStorage.setItem("snookerLoggedIn", "true");
       setLoggedIn(true);
-      return;
-    }
-
-    if (username === owner.username && password === owner.password) {
-      sessionStorage.setItem("snookerLoggedIn", "yes");
-      setLoggedIn(true);
+      setLoginError("");
+      setUsername("");
+      setPassword("");
     } else {
-      notify("Username ya password ghalat hai.");
+      setLoginError("Username ya password ghalat hai!");
     }
   };
 
   const logout = () => {
-    sessionStorage.removeItem("snookerLoggedIn");
+    localStorage.removeItem("snookerLoggedIn");
     setLoggedIn(false);
-    setUsername("");
-    setPassword("");
+    setActiveSection("dashboard");
   };
 
-  const updateTable = (id, changes) => {
-    setTables(old => old.map(t => t.id === id ? { ...t, ...changes } : t));
-  };
-
-  const secondsFor = table =>
-    table.elapsed + (table.active ? Math.floor((now - table.startedAt) / 1000) : 0);
-
-  const timeFor = table => {
-    const seconds = secondsFor(table);
+  const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    return [h, m, s].map(v => String(v).padStart(2, "0")).join(":");
+
+    return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
   };
 
-  const rawBill = table => table.game === "numbri"
-    ? Math.ceil(secondsFor(table) / 60) * Number(prices.numbri)
-    : Number(prices[table.game]);
-
-  const billFor = table => Math.max(0, rawBill(table) - Number(table.discount || 0));
-
-  const startTable = id => {
-    const table = tables.find(t => t.id === id);
-    if (!table || table.active) return;
-    updateTable(id, { active: true, startedAt: Date.now() });
+  const getElapsed = (startedAt) => {
+    if (!startedAt) return 0;
+    return Math.max(0, Math.floor((now - startedAt) / 1000));
   };
 
-  const stopTable = id => {
-    const table = tables.find(t => t.id === id);
-    if (!table || !table.active) return;
+  const addHistory = (item) => {
+    setHistory((old) => [
+      {
+        id: Date.now() + Math.random(),
+        date: new Date().toISOString(),
+        ...item,
+      },
+      ...old,
+    ]);
+  };
 
-    const seconds = secondsFor(table);
-    const raw = table.game === "numbri"
-      ? Math.ceil(seconds / 60) * Number(prices.numbri)
-      : Number(prices[table.game]);
+  const startTable = (id, game, rate) => {
+    setTables((old) =>
+      old.map((table) =>
+        table.id === id
+          ? {
+              ...table,
+              status: "ACTIVE",
+              game,
+              rate,
+              startedAt: Date.now(),
+            }
+          : table
+      )
+    );
 
-    const amount = Math.max(0, raw - Number(table.discount || 0));
+    setNotice(`Table ${id} start ho gaya!`);
+  };
 
-    setHistory(old => [{
-      id: Date.now(),
-      table: id,
-      customer: table.customer || "Walk-in Customer",
-      game: table.game,
-      seconds,
-      amount,
-      discount: Number(table.discount || 0),
-      date: new Date().toISOString()
-    }, ...old]);
+  const stopTable = (id) => {
+    const table = tables.find((t) => t.id === id);
+    if (!table || table.status !== "ACTIVE") return;
 
-    updateTable(id, {
-      active: false,
-      startedAt: null,
-      elapsed: 0,
-      discount: 0,
-      customer: ""
+    const elapsed = getElapsed(table.startedAt);
+    const discount = Number(table.discount || 0);
+    const total = Math.max(0, Number(table.rate) - discount);
+
+    addHistory({
+      type: "Table Game",
+      title: `${table.name} - ${table.game}`,
+      amount: total,
+      duration: formatTime(elapsed),
     });
 
-    notify(`Table ${id} stopped. Bill: ${money(amount)}`);
+    setTables((old) =>
+      old.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              status: "UNACTIVE",
+              startedAt: null,
+              discount: 0,
+            }
+          : t
+      )
+    );
+
+    setNotice(`${table.name} band ho gaya. Income ${money(total)}`);
   };
 
-  const transferTable = (fromId, toId) => {
-    const from = tables.find(t => t.id === fromId);
-    const to = tables.find(t => t.id === Number(toId));
+  const updateDiscount = (id, value) => {
+    setTables((old) =>
+      old.map((t) =>
+        t.id === id ? { ...t, discount: Math.max(0, Number(value)) } : t
+      )
+    );
+  };
 
-    if (!toId || !from?.active || !to || to.active) {
-      notify("Doosra table free hona chahiye.");
+  const addBooking = (e) => {
+    e.preventDefault();
+
+    if (
+      !bookingForm.customer.trim() ||
+      !bookingForm.date ||
+      !bookingForm.time
+    ) {
+      setNotice("Booking ki tamam details fill karo.");
       return;
     }
 
-    setTables(old => old.map(t => {
-      if (t.id === fromId) {
-        return { ...t, active: false, startedAt: null, elapsed: 0, customer: "", discount: 0 };
-      }
-      if (t.id === Number(toId)) {
-        return { ...from, id: t.id };
-      }
-      return t;
-    }));
+    const conflict = bookings.some(
+      (b) =>
+        b.table === bookingForm.table &&
+        b.date === bookingForm.date &&
+        b.time === bookingForm.time &&
+        b.status !== "Rejected"
+    );
 
-    notify(`Game Table ${fromId} se Table ${toId} par transfer ho gaya.`);
-  };
-
-  const today = dayKey(new Date());
-  const todayHistory = history.filter(h => dayKey(h.date) === today);
-  const todayIncome = todayHistory.reduce((s, h) => s + Number(h.amount), 0);
-  const todayExpense = expenses.filter(e => e.date === today).reduce((s, e) => s + Number(e.amount), 0);
-  const totalUdhaar = udhaar.reduce((s, u) => s + u.given - u.returned, 0);
-
-  const addExpense = e => {
-    e.preventDefault();
-    if (!expenseName.trim() || Number(expenseAmount) <= 0) return;
-
-    setExpenses(old => [{
-      id: Date.now(),
-      name: expenseName.trim(),
-      amount: Number(expenseAmount),
-      date: today
-    }, ...old]);
-
-    setExpenseName("");
-    setExpenseAmount("");
-    notify("Expense add ho gaya.");
-  };
-
-  const addUdhaar = e => {
-    e.preventDefault();
-    if (!customerName.trim() || Number(udhaarAmount) <= 0) return;
-
-    setUdhaar(old => [...old, {
-      id: Date.now(),
-      name: customerName.trim(),
-      given: Number(udhaarAmount),
-      returned: 0,
-      entries: [{
-        type: "given",
-        amount: Number(udhaarAmount),
-        date: new Date().toISOString()
-      }]
-    }]);
-
-    setCustomerName("");
-    setUdhaarAmount("");
-    notify("Udhaar record add ho gaya.");
-  };
-
-  const repayUdhaar = id => {
-    const amount = Number(returnAmounts[id]);
-    const customer = udhaar.find(u => u.id === id);
-    if (!customer || amount <= 0) return;
-
-    const balance = customer.given - customer.returned;
-    if (amount > balance) {
-      notify("Amount baqi udhaar se zyada nahi ho sakti.");
+    if (conflict) {
+      setNotice("Is table ki ye date aur time pehle se booked hai!");
       return;
     }
 
-    setUdhaar(old => old.map(u => u.id === id ? {
-      ...u,
-      returned: u.returned + amount,
-      entries: [...(u.entries || []), {
-        type: "returned",
+    const newBooking = {
+      id: Date.now(),
+      ...bookingForm,
+      status: "Pending",
+    };
+
+    setBookings((old) => [newBooking, ...old]);
+
+    setBookingForm({
+      customer: "",
+      table: "1",
+      date: "",
+      time: "",
+    });
+
+    setNotice("New booking request receive ho gayi!");
+  };
+
+  const updateBooking = (id, status) => {
+    setBookings((old) =>
+      old.map((b) => (b.id === id ? { ...b, status } : b))
+    );
+    setNotice(`Booking ${status} kar di gayi.`);
+  };
+
+  const addExpense = (e) => {
+    e.preventDefault();
+
+    const amount = Number(expenseForm.amount);
+
+    if (!expenseForm.title.trim() || amount <= 0) {
+      setNotice("Expense ki sahi details enter karo.");
+      return;
+    }
+
+    setExpenses((old) => [
+      {
+        id: Date.now(),
+        title: expenseForm.title,
         amount,
-        date: new Date().toISOString()
-      }]
-    } : u));
+        date: new Date().toISOString(),
+      },
+      ...old,
+    ]);
 
-    setReturnAmounts(old => ({ ...old, [id]: "" }));
-    notify("Payment receive record ho gayi.");
+    setExpenseForm({ title: "", amount: "" });
+    setNotice("Expense save ho gaya!");
   };
 
-  const exportBackup = () => {
-    const backup = { tables, prices, history, expenses, udhaar, payments };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const addLedger = (e) => {
+    e.preventDefault();
+
+    const name = ledgerForm.name.trim();
+    const given = Number(ledgerForm.given || 0);
+    const returned = Number(ledgerForm.returned || 0);
+
+    if (!name || given < 0 || returned < 0) {
+      setNotice("Customer ki details sahi enter karo.");
+      return;
+    }
+
+    setLedger((old) => [
+      {
+        id: Date.now(),
+        name,
+        given,
+        returned,
+        date: new Date().toISOString(),
+      },
+      ...old,
+    ]);
+
+    setLedgerForm({ name: "", given: "", returned: "" });
+    setNotice("Customer ledger save ho gaya!");
+  };
+
+  const updateReturned = (id, value) => {
+    setLedger((old) =>
+      old.map((item) =>
+        item.id === id
+          ? { ...item, returned: Number(value) }
+          : item
+      )
+    );
+  };
+
+  const transferTable = () => {
+    const from = Number(transferFrom);
+    const to = Number(transferTo);
+
+    if (from === to) {
+      setNotice("Dono tables alag select karo.");
+      return;
+    }
+
+    const source = tables.find((t) => t.id === from);
+    const destination = tables.find((t) => t.id === to);
+
+    if (!source || !destination) return;
+
+    if (source.status !== "ACTIVE") {
+      setNotice("Source table active nahi hai.");
+      return;
+    }
+
+    if (destination.status === "ACTIVE") {
+      setNotice("Destination table pehle se active hai.");
+      return;
+    }
+
+    setTables((old) =>
+      old.map((t) => {
+        if (t.id === from) {
+          return {
+            ...t,
+            status: "UNACTIVE",
+            startedAt: null,
+            discount: 0,
+          };
+        }
+
+        if (t.id === to) {
+          return {
+            ...t,
+            status: "ACTIVE",
+            game: source.game,
+            rate: source.rate,
+            discount: source.discount,
+            startedAt: source.startedAt,
+          };
+        }
+
+        return t;
+      })
+    );
+
+    setNotice(`Game Table ${from} se Table ${to} par transfer ho gaya.`);
+  };
+
+  const startNumbri = () => {
+    if (numbriRunning) return;
+    setNumbriStarted(Date.now());
+    setNumbriRunning(true);
+    setNotice("Numbri game start ho gayi!");
+  };
+
+  const stopNumbri = () => {
+    if (!numbriRunning || !numbriStarted) return;
+
+    const elapsed = Math.floor((Date.now() - numbriStarted) / 1000);
+    const minutes = Math.ceil(elapsed / 60);
+    const amount = minutes * 12;
+
+    addHistory({
+      type: "Numbri Game",
+      title: "Numbri Game",
+      amount,
+      duration: formatTime(elapsed),
+    });
+
+    setNumbriElapsed(0);
+    setNumbriStarted(null);
+    setNumbriRunning(false);
+    setNotice(`Numbri band. Total ${minutes} minute = ${money(amount)}`);
+  };
+
+  useEffect(() => {
+    if (!numbriRunning || !numbriStarted) return;
+
+    const interval = setInterval(() => {
+      setNumbriElapsed(Math.floor((Date.now() - numbriStarted) / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [numbriRunning, numbriStarted]);
+
+  const today = new Date().toLocaleDateString();
+
+  const todayIncome = history
+    .filter((item) => new Date(item.date).toLocaleDateString() === today)
+    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+  const todayExpenses = expenses
+    .filter((item) => new Date(item.date).toLocaleDateString() === today)
+    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+  const totalIncome = history.reduce(
+    (sum, item) => sum + Number(item.amount || 0),
+    0
+  );
+
+  const totalExpenses = expenses.reduce(
+    (sum, item) => sum + Number(item.amount || 0),
+    0
+  );
+
+  const pendingBookings = bookings.filter(
+    (b) => b.status === "Pending"
+  ).length;
+
+  const totalBalance = ledger.reduce(
+    (sum, item) =>
+      sum + Math.max(0, Number(item.given) - Number(item.returned)),
+    0
+  );
+
+  const downloadBackup = () => {
+    const backup = {
+      tables,
+      bookings,
+      expenses,
+      ledger,
+      history,
+      backupDate: new Date().toISOString(),
+    };
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {
+      type: "application/json",
+    });
+
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "snooker-backup.json";
-    a.click();
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "snooker-backup.json";
+    link.click();
     URL.revokeObjectURL(url);
+
+    setNotice("Backup download ho gaya!");
   };
 
-  const importBackup = e => {
+  const restoreBackup = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = event => {
+
+    reader.onload = (event) => {
       try {
-        const data = JSON.parse(event.target.result);
-        if (data.tables) setTables(data.tables);
-        if (data.prices) setPrices(data.prices);
-        if (data.history) setHistory(data.history);
-        if (data.expenses) setExpenses(data.expenses);
-        if (data.udhaar) setUdhaar(data.udhaar);
-        if (data.payments) setPayments(data.payments);
-        notify("Backup restore ho gaya.");
+        const backup = JSON.parse(event.target.result);
+
+        if (
+          !Array.isArray(backup.tables) ||
+          !Array.isArray(backup.bookings) ||
+          !Array.isArray(backup.history)
+        ) {
+          throw new Error("Invalid backup");
+        }
+
+        setTables(backup.tables);
+        setBookings(backup.bookings);
+        setExpenses(Array.isArray(backup.expenses) ? backup.expenses : []);
+        setLedger(Array.isArray(backup.ledger) ? backup.ledger : []);
+        setHistory(backup.history);
+        setNotice("Backup successfully restore ho gaya!");
       } catch {
-        notify("Backup file sahi JSON format mein nahi hai.");
+        setNotice("Backup file sahi nahi hai.");
       }
     };
+
     reader.readAsText(file);
     e.target.value = "";
   };
 
-  const lastSevenDays = useMemo(() => Array.from({ length: 7 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (6 - i));
-    const key = dayKey(d);
-    return {
-      label: d.toLocaleDateString("en", { weekday: "short" }),
-      amount: history.filter(h => dayKey(h.date) === key)
-        .reduce((s, h) => s + Number(h.amount), 0)
-    };
-  }), [history]);
-
-  const maxGraph = Math.max(1, ...lastSevenDays.map(d => d.amount));
-
-  /* LOGIN SCREEN */
   if (!loggedIn) {
     return (
-      <div className="login-page">
-        <div className="login-card">
-          <div className="login-logo">♛</div>
-          <h1>JASS SNOOKER CLUB</h1>
-          <p>{owner ? "Welcome Back, Owner" : "Create Your Owner Account"}</p>
+      <div className="snooker-login-page">
+        <div className="login-overlay"></div>
 
-          <form onSubmit={login}>
-            <input
-              placeholder="Enter Username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              autoComplete="username"
-              required
-            />
+        <form className="snooker-login-box" onSubmit={login}>
+          <div className="login-logo">🎱</div>
+          <p className="login-small">OWNER ACCESS</p>
+          <h1>SNooker <span>CLUB</span></h1>
+          <p className="login-description">
+            Welcome back! Login to manage your club.
+          </p>
 
-            <input
-              type="password"
-              placeholder="Enter Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              autoComplete={owner ? "current-password" : "new-password"}
-              required
-            />
+          <label>Username</label>
+          <input
+            type="text"
+            placeholder="Enter username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
 
-            <button type="submit" className="primary-btn">
-              {owner ? "LOGIN TO DASHBOARD" : "CREATE OWNER ACCOUNT"}
-            </button>
-          </form>
+          <label>Password</label>
+          <input
+            type="password"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-          <small>♛ OWNER ACCESS ONLY · JASS SNOOKER CLUB</small>
-        </div>
+          {loginError && <p className="login-error">{loginError}</p>}
 
-        {message && <div className="toast">{message}</div>}
+          <button className="login-button" type="submit">
+            LOGIN TO DASHBOARD
+          </button>
+
+          <p className="login-footer">OWNER PANEL • SNOOKER MANAGEMENT</p>
+        </form>
       </div>
     );
   }
 
-  /* MAIN DASHBOARD */
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <div>
-          <h1>♛ JASS SNOOKER CLUB</h1>
-          <span>Snooker Management System</span>
+    <div className="snooker-app">
+      <aside className="sidebar">
+        <div className="brand">
+          <span>🎱</span>
+          <div>
+            <h2>SNOOKER</h2>
+            <small>CLUB MANAGER</small>
+          </div>
         </div>
-        <button className="logout-btn" onClick={logout}>Logout</button>
-      </header>
 
-      <nav className="nav-menu">
-        {[
-          ["dashboard", "Dashboard"],
-          ["report", "Income Report"],
-          ["expenses", "Expenses"],
-          ["udhaar", "Udhaar Ledger"],
-          ["calendar", "Calendar / History"],
-          ["prices", "Price Settings"],
-          ["backup", "Backup & Restore"],
-          ["payments", "JazzCash Tracker"]
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            className={page === id ? "nav-active" : ""}
-            onClick={() => setPage(id)}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
+        <nav>
+          {[
+            ["dashboard", "▦", "Dashboard"],
+            ["bookings", "▣", "Bookings"],
+            ["numbri", "◷", "Numbri Game"],
+            ["income", "▤", "Income Report"],
+            ["expenses", "−", "Expenses"],
+            ["ledger", "◉", "Udhaar Ledger"],
+            ["transfer", "⇄", "Table Transfer"],
+            ["backup", "↓", "Backup & Restore"],
+          ].map(([id, icon, label]) => (
+            <button
+              key={id}
+              className={activeSection === id ? "nav-active" : ""}
+              onClick={() => setActiveSection(id)}
+            >
+              <span>{icon}</span> {label}
+              {id === "bookings" && pendingBookings > 0 && (
+                <b className="nav-count">{pendingBookings}</b>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        <button className="logout-button" onClick={logout}>
+          ⇥ Logout
+        </button>
+      </aside>
 
       <main className="main-content">
-
-        {page === "dashboard" && <>
-          <section className="stats-grid">
-            <div className="stat-card">
-              <span>Today's Income</span>
-              <strong>{money(todayIncome)}</strong>
-            </div>
-            <div className="stat-card">
-              <span>Today's Expenses</span>
-              <strong>{money(todayExpense)}</strong>
-            </div>
-            <div className="stat-card">
-              <span>Net Income</span>
-              <strong>{money(todayIncome - todayExpense)}</strong>
-            </div>
-            <div className="stat-card">
-              <span>Total Udhaar Balance</span>
-              <strong>{money(totalUdhaar)}</strong>
-            </div>
-          </section>
-
-          <div className="section-heading">
-            <div>
-              <h2>Snooker Tables</h2>
-              <p>5 tables · Live game management</p>
-            </div>
-            <span className="live-tag">● LIVE</span>
+        <header className="topbar">
+          <div>
+            <p>WELCOME TO YOUR CLUB</p>
+            <h1>
+              {activeSection === "dashboard"
+                ? "Dashboard"
+                : activeSection === "bookings"
+                ? "Booking Management"
+                : activeSection === "numbri"
+                ? "Numbri Game"
+                : activeSection === "income"
+                ? "Income Report"
+                : activeSection === "expenses"
+                ? "Expense Manager"
+                : activeSection === "ledger"
+                ? "Udhaar Ledger"
+                : activeSection === "transfer"
+                ? "Table Transfer"
+                : "Backup & Restore"}
+            </h1>
           </div>
 
-          <section className="tables-grid">
-            {tables.map(table => (
-              <article
-                className={`table-card ${table.active ? "table-active" : ""}`}
-                key={table.id}
+          <div className="topbar-right">
+            <span className="live-dot"></span>
+            <span>Owner Panel</span>
+            <button className="top-logout" onClick={logout}>Logout</button>
+          </div>
+        </header>
+
+        {notice && <div className="toast-message">{notice}</div>}
+
+        {activeSection === "dashboard" && (
+          <>
+            <section className="stats-grid">
+              <div className="stat-card">
+                <span>Today's Income</span>
+                <h2>{money(todayIncome)}</h2>
+                <small>Today's collection</small>
+              </div>
+              <div className="stat-card">
+                <span>Today's Expenses</span>
+                <h2>{money(todayExpenses)}</h2>
+                <small>Today's spending</small>
+              </div>
+              <div className="stat-card">
+                <span>Net Income Today</span>
+                <h2>{money(todayIncome - todayExpenses)}</h2>
+                <small>Income minus expenses</small>
+              </div>
+              <div className="stat-card">
+                <span>Pending Bookings</span>
+                <h2>{pendingBookings}</h2>
+                <small>Requests to review</small>
+              </div>
+            </section>
+
+            <section className="section-heading">
+              <div>
+                <h2>Snooker Tables</h2>
+                <p>Manage your five tables</p>
+              </div>
+              <span className="table-total">5 TABLES</span>
+            </section>
+
+            <section className="tables-grid">
+              {tables.map((table) => (
+                <div className="table-card" key={table.id}>
+                  <div className="table-card-top">
+                    <div>
+                      <span className="table-number">TABLE {table.id}</span>
+                      <h3>{table.name}</h3>
+                    </div>
+                    <span
+                      className={
+                        table.status === "ACTIVE"
+                          ? "status active"
+                          : "status inactive"
+                      }
+                    >
+                      {table.status}
+                    </span>
+                  </div>
+
+                  <div className="table-visual">
+                    <div className="pool-table">
+                      <span className="ball ball-white"></span>
+                      <span className="ball ball-red"></span>
+                      <span className="ball ball-yellow"></span>
+                      <span className="ball ball-blue"></span>
+                      <span className="ball ball-pink"></span>
+                    </div>
+                  </div>
+
+                  <div className="game-options">
+                    <button
+                      className={table.game === "6 Red" ? "selected-game" : ""}
+                      disabled={table.status === "ACTIVE"}
+                      onClick={() => startTable(table.id, "6 Red", 100)}
+                    >
+                      6 Red <b>Rs.100</b>
+                    </button>
+
+                    <button
+                      className={table.game === "10 Red" ? "selected-game" : ""}
+                      disabled={table.status === "ACTIVE"}
+                      onClick={() => startTable(table.id, "10 Red", 150)}
+                    >
+                      10 Red <b>Rs.150</b>
+                    </button>
+                  </div>
+
+                  <div className="table-timer">
+                    <small>PLAYING TIME</small>
+                    <strong>
+                      {table.status === "ACTIVE"
+                        ? formatTime(getElapsed(table.startedAt))
+                        : "00:00:00"}
+                    </strong>
+                  </div>
+
+                  <div className="discount-row">
+                    <label>Discount (Rs.)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={table.discount}
+                      disabled={table.status !== "ACTIVE"}
+                      onChange={(e) =>
+                        updateDiscount(table.id, e.target.value)
+                      }
+                    />
+                  </div>
+
+                  <div className="table-price">
+                    <span>Final Amount</span>
+                    <strong>
+                      {money(
+                        table.status === "ACTIVE"
+                          ? Math.max(0, table.rate - table.discount)
+                          : 0
+                      )}
+                    </strong>
+                  </div>
+
+                  {table.status === "ACTIVE" ? (
+                    <button
+                      className="stop-button"
+                      onClick={() => stopTable(table.id)}
+                    >
+                      STOP TABLE
+                    </button>
+                  ) : (
+                    <p className="table-hint">Select a game to start</p>
+                  )}
+                </div>
+              ))}
+            </section>
+
+            <section className="section-heading">
+              <div>
+                <h2>Recent Bookings</h2>
+                <p>Latest customer requests</p>
+              </div>
+              <button
+                className="view-button"
+                onClick={() => setActiveSection("bookings")}
               >
-                <div className="table-card-head">
-                  <h3>TABLE {table.id}</h3>
-                  <span className={table.active ? "status-active" : "status-inactive"}>
-                    {table.active ? "ACTIVE" : "UNACTIVE"}
-                  </span>
-                </div>
+                View All
+              </button>
+            </section>
 
-                <div className="mini-table">
-                  <div className="mini-ball red-ball" />
-                  <div className="mini-ball yellow-ball" />
-                  <div className="mini-ball blue-ball" />
-                  <div className="mini-ball pink-ball" />
-                </div>
+            <div className="content-panel">
+              {bookings.length === 0 ? (
+                <p className="empty-message">Abhi koi booking nahi hai.</p>
+              ) : (
+                bookings.slice(0, 5).map((b) => (
+                  <div className="booking-row" key={b.id}>
+                    <div>
+                      <strong>{b.customer}</strong>
+                      <small>
+                        Table {b.table} • {b.date} • {b.time}
+                      </small>
+                    </div>
+                    <span className={`booking-status ${b.status.toLowerCase()}`}>
+                      {b.status}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        )}
 
+        {activeSection === "bookings" && (
+          <>
+            <section className="content-panel">
+              <h2>New Table Booking</h2>
+              <p>Customer ki booking request enter karo.</p>
+
+              <form className="data-form" onSubmit={addBooking}>
+                <label>Customer Name</label>
+                <input
+                  value={bookingForm.customer}
+                  onChange={(e) =>
+                    setBookingForm({ ...bookingForm, customer: e.target.value })
+                  }
+                  placeholder="Customer name"
+                  required
+                />
+
+                <label>Select Table</label>
+                <select
+                  value={bookingForm.table}
+                  onChange={(e) =>
+                    setBookingForm({ ...bookingForm, table: e.target.value })
+                  }
+                >
+                  {tables.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      Table {t.id}
+                    </option>
+                  ))}
+                </select>
+
+                <label>Booking Date</label>
+                <input
+                  type="date"
+                  value={bookingForm.date}
+                  onChange={(e) =>
+                    setBookingForm({ ...bookingForm, date: e.target.value })
+                  }
+                  required
+                />
+
+                <label>Booking Time</label>
+                <input
+                  type="time"
+                  value={bookingForm.time}
+                  onChange={(e) =>
+                    setBookingForm({ ...bookingForm, time: e.target.value })
+                  }
+                  required
+                />
+
+                <button className="primary-button" type="submit">
+                  ADD BOOKING REQUEST
+                </button>
+              </form>
+            </section>
+
+            <section className="content-panel">
+              <h2>All Booking Requests</h2>
+
+              {bookings.length === 0 && (
+                <p className="empty-message">No booking requests found.</p>
+              )}
+
+              {bookings.map((b) => (
+                <div className="booking-row" key={b.id}>
+                  <div>
+                    <strong>{b.customer}</strong>
+                    <small>
+                      Table {b.table} • {b.date} • {b.time}
+                    </small>
+                  </div>
+
+                  <div className="booking-actions">
+                    <span className={`booking-status ${b.status.toLowerCase()}`}>
+                      {b.status}
+                    </span>
+
+                    {b.status === "Pending" && (
+                      <>
+                        <button
+                          className="accept-button"
+                          onClick={() => updateBooking(b.id, "Accepted")}
+                        >
+                          Accept
+                        </button>
+                        <button
+                          className="reject-button"
+                          onClick={() => updateBooking(b.id, "Rejected")}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </section>
+          </>
+        )}
+
+        {activeSection === "numbri" && (
+          <section className="content-panel numbri-panel">
+            <div className="numbri-icon">🎱</div>
+            <h2>Numbri Game Timer</h2>
+            <p>Rate: Rs.12 per minute</p>
+            <div className="numbri-clock">
+              {formatTime(numbriElapsed)}
+            </div>
+            <h3>
+              Total: {money(Math.ceil(numbriElapsed / 60) * 12)}
+            </h3>
+
+            {!numbriRunning ? (
+              <button className="primary-button" onClick={startNumbri}>
+                START NUMBRI
+              </button>
+            ) : (
+              <button className="stop-button" onClick={stopNumbri}>
+                STOP NUMBRI
+              </button>
+            )}
+          </section>
+        )}
+
+        {activeSection === "income" && (
+          <>
+            <section className="stats-grid">
+              <div className="stat-card">
+                <span>Total Income</span>
+                <h2>{money(totalIncome)}</h2>
+              </div>
+              <div className="stat-card">
+                <span>Total Expenses</span>
+                <h2>{money(totalExpenses)}</h2>
+              </div>
+              <div className="stat-card">
+                <span>Net Balance</span>
+                <h2>{money(totalIncome - totalExpenses)}</h2>
+              </div>
+            </section>
+
+            <section className="content-panel">
+              <h2>Income History</h2>
+
+              {history.length === 0 && (
+                <p className="empty-message">Abhi income history nahi hai.</p>
+              )}
+
+              {history.map((item) => (
+                <div className="booking-row" key={item.id}>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <small>
+                      {new Date(item.date).toLocaleString()} • {item.duration}
+                    </small>
+                  </div>
+                  <strong className="income-amount">{money(item.amount)}</strong>
+                </div>
+              ))}
+            </section>
+          </>
+        )}
+
+        {activeSection === "expenses" && (
+          <>
+            <section className="content-panel">
+              <h2>Add New Expense</h2>
+              <form className="data-form" onSubmit={addExpense}>
+                <label>Expense Details</label>
+                <input
+                  placeholder="e.g. Electricity bill"
+                  value={expenseForm.title}
+                  onChange={(e) =>
+                    setExpenseForm({ ...expenseForm, title: e.target.value })
+                  }
+                  required
+                />
+
+                <label>Amount (Rs.)</label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="Enter amount"
+                  value={expenseForm.amount}
+                  onChange={(e) =>
+                    setExpenseForm({ ...expenseForm, amount: e.target.value })
+                  }
+                  required
+                />
+
+                <button className="primary-button" type="submit">
+                  SAVE EXPENSE
+                </button>
+              </form>
+            </section>
+
+            <section className="content-panel">
+              <h2>Expense History</h2>
+              <h3>Total: {money(totalExpenses)}</h3>
+
+              {expenses.map((item) => (
+                <div className="booking-row" key={item.id}>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <small>{new Date(item.date).toLocaleString()}</small>
+                  </div>
+                  <strong className="expense-amount">
+                    {money(item.amount)}
+                  </strong>
+                </div>
+              ))}
+            </section>
+          </>
+        )}
+
+        {activeSection === "ledger" && (
+          <>
+            <section className="content-panel">
+              <h2>Add Customer Udhaar</h2>
+              <form className="data-form" onSubmit={addLedger}>
                 <label>Customer Name</label>
                 <input
                   placeholder="Customer name"
-                  value={table.customer}
-                  disabled={table.active}
-                  onChange={e => updateTable(table.id, { customer: e.target.value })}
+                  value={ledgerForm.name}
+                  onChange={(e) =>
+                    setLedgerForm({ ...ledgerForm, name: e.target.value })
+                  }
+                  required
                 />
 
-                <label>Game / Price</label>
-                <select
-                  value={table.game}
-                  disabled={table.active}
-                  onChange={e => updateTable(table.id, { game: e.target.value })}
-                >
-                  <option value="single6">Single Frame · 6 Red · {money(prices.single6)}</option>
-                  <option value="single10">Single Frame · 10 Red · {money(prices.single10)}</option>
-                  <option value="double6">Double Frame · 6 Red · {money(prices.double6)}</option>
-                  <option value="double10">Double Frame · 10 Red · {money(prices.double10)}</option>
-                  <option value="numbri">Numbri · {money(prices.numbri)} / minute</option>
-                </select>
-
-                <label>Discount (Rs.)</label>
+                <label>Kitna Paisa Diya (Rs.)</label>
                 <input
                   type="number"
                   min="0"
-                  value={table.discount}
-                  disabled={table.active}
-                  onChange={e => updateTable(table.id, { discount: Number(e.target.value) })}
+                  value={ledgerForm.given}
+                  onChange={(e) =>
+                    setLedgerForm({ ...ledgerForm, given: e.target.value })
+                  }
+                  required
                 />
 
-                <div className="timer-box">
-                  <span>GAME TIME</span>
-                  <strong>{timeFor(table)}</strong>
-                </div>
-
-                <div className="bill-line">
-                  <span>Estimated Bill</span>
-                  <b>{money(billFor(table))}</b>
-                </div>
-
-                {!table.active ? (
-                  <button className="start-btn" onClick={() => startTable(table.id)}>
-                    ▶ START GAME
-                  </button>
-                ) : (
-                  <button className="stop-btn" onClick={() => stopTable(table.id)}>
-                    ■ STOP & BILL
-                  </button>
-                )}
-
-                {table.active && (
-                  <div className="transfer-row">
-                    <select id={`transfer-${table.id}`} defaultValue="">
-                      <option value="">Transfer to table...</option>
-                      {tables.filter(t => !t.active && t.id !== table.id).map(t => (
-                        <option key={t.id} value={t.id}>Table {t.id}</option>
-                      ))}
-                    </select>
-                    <button onClick={() => transferTable(
-                      table.id,
-                      document.getElementById(`transfer-${table.id}`).value
-                    )}>
-                      Transfer
-                    </button>
-                  </div>
-                )}
-              </article>
-            ))}
-          </section>
-        </>}
-
-        {page === "report" && <>
-          <h2>Daily Income Report</h2>
-          <div className="stat-card report-total">
-            <span>Today's Total Income</span>
-            <strong>{money(todayIncome)}</strong>
-          </div>
-
-          <h3>Last 7 Days Income</h3>
-          <div className="graph-card">
-            {lastSevenDays.map((d, i) => (
-              <div className="graph-column" key={i}>
-                <strong>{money(d.amount)}</strong>
-                <div className="bar-track">
-                  <div
-                    className="bar-fill"
-                    style={{ height: `${(d.amount / maxGraph) * 100}%` }}
-                  />
-                </div>
-                <span>{d.label}</span>
-              </div>
-            ))}
-          </div>
-
-          <h3>Completed Games Today</h3>
-          <div className="data-list">
-            {todayHistory.map(h => (
-              <div className="data-row" key={h.id}>
-                <span>Table {h.table} · {h.customer} · {h.game}</span>
-                <b>{money(h.amount)}</b>
-              </div>
-            ))}
-            {!todayHistory.length && <p>No games recorded today.</p>}
-          </div>
-        </>}
-
-        {page === "expenses" && <>
-          <h2>Expense Manager</h2>
-          <form className="inline-form" onSubmit={addExpense}>
-            <input
-              placeholder="Expense detail"
-              value={expenseName}
-              onChange={e => setExpenseName(e.target.value)}
-              required
-            />
-            <input
-              type="number"
-              min="1"
-              placeholder="Amount Rs."
-              value={expenseAmount}
-              onChange={e => setExpenseAmount(e.target.value)}
-              required
-            />
-            <button className="primary-btn">Add Expense</button>
-          </form>
-
-          <div className="stat-card">
-            <span>Today's Expenses</span>
-            <strong>{money(todayExpense)}</strong>
-          </div>
-
-          <div className="data-list">
-            {expenses.map(e => (
-              <div className="data-row" key={e.id}>
-                <span>{e.name} · {e.date}</span>
-                <b>{money(e.amount)}</b>
-              </div>
-            ))}
-            {!expenses.length && <p>No expenses added.</p>}
-          </div>
-        </>}
-
-        {page === "udhaar" && <>
-          <h2>Customer Udhaar Ledger</h2>
-          <p>Customer ka naam, diya gaya paisa, wapas mila paisa aur baqi balance.</p>
-
-          <form className="inline-form" onSubmit={addUdhaar}>
-            <input
-              placeholder="Customer name"
-              value={customerName}
-              onChange={e => setCustomerName(e.target.value)}
-              required
-            />
-            <input
-              type="number"
-              min="1"
-              placeholder="Udhaar diya (Rs.)"
-              value={udhaarAmount}
-              onChange={e => setUdhaarAmount(e.target.value)}
-              required
-            />
-            <button className="primary-btn">Add Udhaar</button>
-          </form>
-
-          <div className="stat-card">
-            <span>Total Remaining Udhaar</span>
-            <strong>{money(totalUdhaar)}</strong>
-          </div>
-
-          <div className="udhaar-grid">
-            {udhaar.map(u => (
-              <div className="udhaar-card" key={u.id}>
-                <h3>{u.name}</h3>
-                <p>Diya gaya: <b>{money(u.given)}</b></p>
-                <p>Wapas mila: <b>{money(u.returned)}</b></p>
-                <p className="balance-text">
-                  Baqi balance: {money(u.given - u.returned)}
-                </p>
-
-                {u.given - u.returned > 0 && (
-                  <div className="repay-row">
-                    <input
-                      type="number"
-                      min="1"
-                      placeholder="Wapas amount"
-                      value={returnAmounts[u.id] || ""}
-                      onChange={e => setReturnAmounts(old => ({
-                        ...old,
-                        [u.id]: e.target.value
-                      }))}
-                    />
-                    <button type="button" onClick={() => repayUdhaar(u.id)}>
-                      Receive
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-            {!udhaar.length && <p>Abhi koi udhaar record nahi hai.</p>}
-          </div>
-        </>}
-
-        {page === "calendar" && <>
-          <h2>Calendar & Game History</h2>
-          <div className="inline-form">
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={e => setSelectedDate(e.target.value)}
-            />
-          </div>
-
-          <div className="data-list">
-            {history.filter(h => dayKey(h.date) === selectedDate).map(h => (
-              <div className="data-row" key={h.id}>
-                <span>
-                  Table {h.table} · {h.customer} · {new Date(h.date).toLocaleTimeString()}
-                </span>
-                <b>{money(h.amount)}</b>
-              </div>
-            ))}
-            {!history.some(h => dayKey(h.date) === selectedDate) &&
-              <p>Is date ka koi game record nahi mila.</p>}
-          </div>
-        </>}
-
-        {page === "prices" && <>
-          <h2>Price Management</h2>
-          <div className="price-settings">
-            {[
-              ["single6", "Single Frame · 6 Red"],
-              ["single10", "Single Frame · 10 Red"],
-              ["double6", "Double Frame · 6 Red"],
-              ["double10", "Double Frame · 10 Red"],
-              ["numbri", "Numbri · Per Minute"]
-            ].map(([key, label]) => (
-              <label key={key}>
-                {label}
+                <label>Kitna Wapas Mila (Rs.)</label>
                 <input
                   type="number"
                   min="0"
-                  value={prices[key]}
-                  onChange={e => setPrices(old => ({
-                    ...old,
-                    [key]: Number(e.target.value)
-                  }))}
+                  value={ledgerForm.returned}
+                  onChange={(e) =>
+                    setLedgerForm({ ...ledgerForm, returned: e.target.value })
+                  }
                 />
-              </label>
-            ))}
-          </div>
-          <p className="hint">Updated prices naye games par apply hongi.</p>
-        </>}
 
-        {page === "backup" && <>
-          <h2>Backup & Restore</h2>
-          <p>Tables, prices, history, expenses, udhaar aur payments ka backup save karein.</p>
-          <button className="primary-btn backup-btn" onClick={exportBackup}>
-            Download Backup JSON
-          </button>
-
-          <div className="restore-box">
-            <h3>Restore Backup</h3>
-            <p>Apni pehle save ki hui JSON backup file select karein.</p>
-            <input type="file" accept=".json,application/json" onChange={importBackup} />
-          </div>
-        </>}
-
-        {page === "payments" && <>
-          <h2>JazzCash Payment Tracker</h2>
-
-          <div className="jazz-card">
-            <h3>JazzCash Account</h3>
-            <p>Account Holder: Muzamil Rasheed</p>
-            <p>Number: 03051394181</p>
-            <p className="hint">
-              Payment receive hone ke baad hi Paid mark karein.
-              App payment automatically verify nahi karti.
-            </p>
-          </div>
-
-          <form className="inline-form" onSubmit={e => {
-            e.preventDefault();
-            if (Number(paymentAmount) <= 0) return;
-            setPayments(old => [{
-              id: Date.now(),
-              amount: Number(paymentAmount),
-              paid: false,
-              date: today
-            }, ...old]);
-            setPaymentAmount("");
-          }}>
-            <input
-              type="number"
-              min="1"
-              placeholder="Payment amount Rs."
-              value={paymentAmount}
-              onChange={e => setPaymentAmount(e.target.value)}
-              required
-            />
-            <button className="primary-btn">Add Payment</button>
-          </form>
-
-          <div className="data-list">
-            {payments.map(p => (
-              <div className="data-row" key={p.id}>
-                <span>
-                  {money(p.amount)} · {p.date} · {p.paid ? "Paid" : "Pending"}
-                </span>
-                <button onClick={() => setPayments(old => old.map(x =>
-                  x.id === p.id ? { ...x, paid: !x.paid } : x
-                ))}>
-                  {p.paid ? "Mark Pending" : "Mark Paid"}
+                <button className="primary-button" type="submit">
+                  SAVE CUSTOMER
                 </button>
-              </div>
-            ))}
-            {!payments.length && <p>No payment entries.</p>}
-          </div>
-        </>}
+              </form>
+            </section>
+
+            <section className="content-panel">
+              <h2>Customer Balance</h2>
+              <h3>Total Remaining: {money(totalBalance)}</h3>
+
+              {ledger.map((item) => {
+                const balance = Math.max(
+                  0,
+                  Number(item.given) - Number(item.returned)
+                );
+
+                return (
+                  <div className="ledger-card" key={item.id}>
+                    <div>
+                      <h3>{item.name}</h3>
+                      <p>Diya: {money(item.given)}</p>
+                      <p>Wapas Mila: {money(item.returned)}</p>
+                      <strong>Remaining: {money(balance)}</strong>
+                    </div>
+
+                    <div className="ledger-return">
+                      <label>Update returned amount</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={item.given}
+                        value={item.returned}
+                        onChange={(e) =>
+                          updateReturned(item.id, e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </section>
+          </>
+        )}
+
+        {activeSection === "transfer" && (
+          <section className="content-panel">
+            <h2>Transfer Active Game</h2>
+            <p>Ek table ka active game doosri khaali table par shift karo.</p>
+
+            <div className="data-form">
+              <label>From Table</label>
+              <select
+                value={transferFrom}
+                onChange={(e) => setTransferFrom(e.target.value)}
+              >
+                {tables.map((t) => (
+                  <option value={t.id} key={t.id}>
+                    Table {t.id} — {t.status}
+                  </option>
+                ))}
+              </select>
+
+              <label>To Table</label>
+              <select
+                value={transferTo}
+                onChange={(e) => setTransferTo(e.target.value)}
+              >
+                {tables.map((t) => (
+                  <option value={t.id} key={t.id}>
+                    Table {t.id} — {t.status}
+                  </option>
+                ))}
+              </select>
+
+              <button className="primary-button" onClick={transferTable}>
+                TRANSFER GAME
+              </button>
+            </div>
+          </section>
+        )}
+
+        {activeSection === "backup" && (
+          <section className="content-panel backup-panel">
+            <div className="backup-icon">💾</div>
+            <h2>Backup & Restore</h2>
+            <p>
+              Apne tables, bookings, expenses, ledger aur income history ka
+              backup download karo.
+            </p>
+
+            <button className="primary-button" onClick={downloadBackup}>
+              DOWNLOAD BACKUP
+            </button>
+
+            <div className="restore-area">
+              <h3>Restore Backup</h3>
+              <p>Apni pehle download ki hui JSON backup file select karo.</p>
+              <input
+                type="file"
+                accept=".json,application/json"
+                onChange={restoreBackup}
+              />
+            </div>
+          </section>
+        )}
+
+        <footer className="dashboard-footer">
+          SNOOKER CLUB MANAGEMENT SYSTEM • FRONTEND VERSION
+        </footer>
       </main>
-
-      {message && <div className="toast">{message}</div>}
-
-      <footer>JASS SNOOKER CLUB · Management Dashboard</footer>
     </div>
   );
 }
+
+export default Snooker;
