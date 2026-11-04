@@ -302,8 +302,7 @@ img {
   text-align: center;
   background:
     linear-gradient(#090a0ddf, #090a0ddf),
-    url('/img/bg.jpg') center/cover;
-}
+url('/img/goal-background-img.jpg')}
 
 .goals-content h2 {
   font-size: clamp(32px, 5vw, 52px);
@@ -621,8 +620,7 @@ img {
   text-align: center;
   background:
     linear-gradient(#08090de8, #08090de8),
-    url('/img/carousel-2.jpg') center/cover;
-}
+url('/img/header-2.jpg')}
 
 .testimonial-content {
   max-width: 750px;
