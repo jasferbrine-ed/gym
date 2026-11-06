@@ -297,8 +297,8 @@ export default function Gym() {
       {/* TOP BAR */}
       <div className="topbar">
         <div className="container topbar-content">
-          <p>📍 Your Fitness Destination</p>
-          <p>📞 +92 300 1234567</p>
+          <p>📍 Jaranwala,Pakistan</p>
+          <p>📞 +92 3207080695</p>
         </div>
       </div>
 
@@ -696,8 +696,8 @@ export default function Gym() {
 
           <div className="footer-links">
             <h3>Contact</h3>
-            <p>📍 Your Gym Address</p>
-            <p>📞 +92 300 1234567</p>
+            <p>📍 Jaranwala,Pakistan</p>
+            <p>📞 +92 3207080695</p>
           </div>
         </div>
 
